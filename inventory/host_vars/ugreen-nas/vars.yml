@@ -1,0 +1,15 @@
+---
+# Host-specific variables for ugreen-nas
+
+# Connection settings
+ansible_connection: ssh
+ansible_become: true
+ansible_become_method: sudo
+
+# Paperless configuration
+paperless_base_dir: /volume1/@home/jaydee/paperless
+
+# Predefined Paperless admin user (change these for production)
+paperless_admin_user: jaydee
+paperless_admin_email: jaydee@mydomain.com
+

@@ -1,0 +1,3 @@
+.vscode/
+.vault
+inventory/host_vars/*/vault.yml
