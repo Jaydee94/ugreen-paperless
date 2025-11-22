@@ -20,6 +20,11 @@ paperless_http_port: 8000
 paperless_image: ghcr.io/paperless-ngx/paperless-ngx:2.12.0
 paperless_db_image: postgres:16-alpine
 paperless_redis_image: redis:7-alpine
+paperless_ai_image: clusterzx/paperless-ai
+
+# Paperless-AI settings
+paperless_ai_port: 3000
+paperless_ai_enabled: true
 
 # Postgres settings (used inside docker-compose/.env)
 paperless_db_user: paperless

@@ -2,7 +2,7 @@
 
 An Ansible role and playbook collection to install and deploy paperless-ngx on an Ugreen NAS (or other Linux hosts) using Docker Compose.
 
-This repository contains an opinionated role `paperless` that installs Docker, renders a Docker Compose stack (paperless-ngx + Postgres + Redis) and brings it up. It's intended for small/home NAS systems and can be adapted for other environments.
+This repository contains an opinionated role `paperless` that installs Docker, renders a Docker Compose stack (paperless-ngx + Postgres + Redis + Paperless-AI) and brings it up. It's intended for small/home NAS systems and can be adapted for other environments.
 
 ## Contents
 
@@ -35,6 +35,8 @@ Key configurable variables are in `roles/paperless/defaults/main.yml`. Important
 - `paperless_base_dir` — where the compose file, data and media directories are placed (default: `/opt/paperless`).
 - `paperless_db_password` — database password (change this before deploying).
 - `paperless_http_port` — port on host mapped to the paperless web UI (default: 8000).
+- `paperless_ai_enabled` — whether to include the paperless-ai service (default: true).
+- `paperless_ai_port` — port on host mapped to the paperless-ai web UI (default: 3000).
 
 ## Security and secrets
 
@@ -99,6 +101,18 @@ Example (default):
     http://192.168.1.100:8000
 
 Log in with the credentials you set during initial setup, or follow the Paperless documentation to create your first user if prompted.
+
+## Accessing Paperless-AI
+
+If enabled, Paperless-AI is available at:
+
+    http://<NAS-IP>:<paperless_ai_port>
+
+Example (default):
+
+    http://192.168.1.100:3000
+
+You will need to configure your AI provider settings (OpenAI, Ollama, etc.) in the Paperless-AI interface upon first login.
 
 ## License
 
