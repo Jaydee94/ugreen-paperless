@@ -24,7 +24,7 @@ paperless_ai_image: clusterzx/paperless-ai
 
 # Paperless-AI settings
 paperless_ai_port: 3000
-paperless_ai_enabled: true
+paperless_ai_enabled: false
 
 # Postgres settings (used inside docker-compose/.env)
 paperless_db_user: paperless
