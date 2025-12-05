@@ -1,0 +1,128 @@
+---
+# Tasks to install and configure paperless-ai
+
+- name: Gather facts (ensure we know package manager)
+  ansible.builtin.setup:
+    gather_subset:
+      - '!all'
+      - 'min'
+
+- name: Set Docker apt architecture mapping for Debian/Ubuntu
+  ansible.builtin.set_fact:
+    docker_apt_arch: >-
+      {{ 'amd64' if ansible_facts['architecture'] in ['x86_64', 'i386', 'i686',
+      'amd64'] else ('arm64' if ansible_facts['architecture'] in ['aarch64',
+      'arm64'] else ansible_facts['architecture']) }}
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Ensure apt directories exist (Debian/Ubuntu)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /var/lib/apt/lists
+    - /var/lib/apt/lists/partial
+    - /var/cache/apt
+    - /var/cache/apt/archives
+    - /var/cache/apt/archives/partial
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install packages on Debian/Ubuntu
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Add Docker GPG key (Debian)
+  ansible.builtin.apt_key:
+    url: "https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }}/gpg"
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Add Docker apt repo
+  ansible.builtin.apt_repository:
+    repo: >
+      deb [arch={{ docker_apt_arch }}]
+      https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }}
+      {{ ansible_facts['distribution_release'] }} stable
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install docker packages (Debian)
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install Docker on RedHat/CentOS (yum/dnf)
+  ansible.builtin.yum:
+    name:
+      - docker
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Ensure docker service is started and enabled
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Ensure group exists
+  ansible.builtin.group:
+    name: "{{ paperless_ai_group }}"
+    gid: "{{ paperless_ai_gid }}"
+    state: present
+
+- name: Ensure user exists
+  ansible.builtin.user:
+    name: "{{ paperless_ai_user }}"
+    uid: "{{ paperless_ai_uid }}"
+    group: "{{ paperless_ai_group }}"
+    createhome: false
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ paperless_ai_user }}"
+    groups: docker
+    append: true
+
+- name: Create base directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ paperless_ai_user }}"
+    group: "{{ paperless_ai_group }}"
+    mode: '0755'
+  loop:
+    - "{{ paperless_ai_base_dir }}"
+    - "{{ paperless_ai_data_dir }}"
+
+- name: Deploy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ paperless_ai_base_dir }}/docker-compose.yml"
+    owner: "{{ paperless_ai_user }}"
+    group: "{{ paperless_ai_group }}"
+    mode: '0644'
+  notify: Restart paperless-ai
+
+- name: Ensure docker compose is running
+  community.docker.docker_compose_v2:
+    project_src: "{{ paperless_ai_base_dir }}"
+    state: present

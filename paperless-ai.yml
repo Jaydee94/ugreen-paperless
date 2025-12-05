@@ -1,0 +1,6 @@
+---
+- name: Install Paperless-AI on Kubepi
+  hosts: kubepi
+  become: true
+  roles:
+    - paperless-ai

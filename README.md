@@ -21,6 +21,17 @@ This repository contains an opinionated role `paperless` that installs Docker, r
 ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml
 ```
 
+### Deploying Paperless-AI to Kubepi
+
+To deploy the AI service to a separate host (e.g., `kubepi`), use the dedicated playbook:
+
+```bash
+ansible-playbook -i inventory/hosts.yml paperless-ai.yml --ask-vault-pass --ask-become-pass --ask-pass
+```
+
+Make sure to configure the `kubepi` host in `inventory/hosts.yml` and ensure SSH access is available.
+
+
 ## Role: `paperless` (summary)
 
 The role performs the following high-level steps:

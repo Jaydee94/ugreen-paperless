@@ -1,0 +1,5 @@
+---
+- name: Restart paperless-ai
+  community.docker.docker_compose_v2:
+    project_src: "{{ paperless_ai_base_dir }}"
+    state: restarted

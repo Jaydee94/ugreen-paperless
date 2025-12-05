@@ -1,0 +1,19 @@
+services:
+  paperless-ai:
+    image: "{{ paperless_ai_image }}"
+    container_name: paperless-ai
+    restart: unless-stopped
+    environment:
+      - PUID={{ paperless_ai_uid }}
+      - PGID={{ paperless_ai_gid }}
+      - PAPERLESS_AI_PORT=3000
+      - RAG_SERVICE_URL=localhost:8000
+      - RAG_SERVICE_ENABLED=true
+    ports:
+      - "{{ paperless_ai_port }}:3000"
+    volumes:
+      - "{{ paperless_ai_data_dir }}:/app/data"
+
+networks:
+  default:
+    name: paperless_ai_net
