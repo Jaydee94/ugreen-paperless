@@ -25,6 +25,7 @@ services:
     volumes:
       - "./data:/usr/src/paperless/data"
       - "./media:/usr/src/paperless/media"
+      - "./export:/usr/src/paperless/export"
     ports:
       - "{{ paperless_http_port }}:8000"
 

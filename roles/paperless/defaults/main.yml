@@ -13,6 +13,12 @@ paperless_media_dir: "{{ paperless_base_dir }}/media"
 paperless_data_dir: "{{ paperless_base_dir }}/data"
 paperless_db_dir: "{{ paperless_base_dir }}/db"
 
+# Backup settings
+paperless_backup_dir: "{{ paperless_base_dir }}/backups"
+paperless_export_dir: "{{ paperless_base_dir }}/export"
+paperless_backup_retention_days: 7
+paperless_backup_schedule: "0 2 * * *"
+
 # Ports exposed on the host
 paperless_http_port: 8000
 

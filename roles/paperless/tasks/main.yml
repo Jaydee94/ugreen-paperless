@@ -97,6 +97,36 @@
     state: started
     enabled: true
 
+- name: Create paperless backup and export directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ paperless_user }}"
+    group: "{{ paperless_group }}"
+    mode: '0755'
+  loop:
+    - "{{ paperless_backup_dir }}"
+    - "{{ paperless_export_dir }}"
+
+- name: Template backup script
+  ansible.builtin.template:
+    src: backup-paperless.sh.j2
+    dest: "{{ paperless_base_dir }}/backup-paperless.sh"
+    owner: "{{ paperless_user }}"
+    group: "{{ paperless_group }}"
+    mode: '0755'
+
+- name: Configure daily backup cron job
+  ansible.builtin.cron:
+    name: "Paperless Daily Backup"
+    minute: "{{ paperless_backup_schedule.split(' ')[0] }}"
+    hour: "{{ paperless_backup_schedule.split(' ')[1] }}"
+    day: "{{ paperless_backup_schedule.split(' ')[2] }}"
+    month: "{{ paperless_backup_schedule.split(' ')[3] }}"
+    weekday: "{{ paperless_backup_schedule.split(' ')[4] }}"
+    user: root
+    job: "{{ paperless_base_dir }}/backup-paperless.sh >> {{ paperless_backup_dir }}/backup.log 2>&1"
+
 - name: Add user to docker group
   ansible.builtin.user:
     name: "{{ paperless_user }}"
