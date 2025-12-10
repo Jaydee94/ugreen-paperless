@@ -10,8 +10,6 @@
     state: present
     update_cache: true
 
-# ... (ImageMagick tasks remain) ...
-
 - name: Configure scanbd (scanbd.conf)
   template:
     src: scanbd.conf.j2
