@@ -1,0 +1,5 @@
+---
+- name: Restart scanbd
+  service:
+    name: scanbd
+    state: restarted

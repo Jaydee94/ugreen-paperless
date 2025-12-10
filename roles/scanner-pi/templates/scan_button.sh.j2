@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Log output
+LOGFILE="/tmp/scan-button.log"
+# Manage log size: keep last 1000 lines
+if [ -f "$LOGFILE" ]; then
+    tail -n 1000 "$LOGFILE" > "${LOGFILE}.tmp" && mv "${LOGFILE}.tmp" "$LOGFILE"
+fi
+exec >> "$LOGFILE" 2>&1
+echo "--- Button Pressed: $(date) ---"
+
+# Proxy Method: scanbd stays running. We connect via net backend.
+# Run the scan script directly as the target user.
+
+echo "Starting scan script as {{ ansible_user }}..."
+su - {{ ansible_user }} -c "/home/{{ ansible_user }}/scripts/scan_to_pdf.sh"
+
+SCAN_EXIT=$?
+echo "Scan script finished with exit code $SCAN_EXIT"

@@ -1,0 +1,131 @@
+---
+- name: Install scanning dependencies
+  apt:
+    name:
+      - imagemagick
+      - sane
+      - sane-utils
+      - bc
+      - scanbd
+    state: present
+    update_cache: true
+
+# ... (ImageMagick tasks remain) ...
+
+- name: Configure scanbd (scanbd.conf)
+  template:
+    src: scanbd.conf.j2
+    dest: /etc/scanbd/scanbd.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart scanbd
+
+- name: Ensure scanbd scripts directory exists
+  file:
+    path: /etc/scanbd/scripts
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+    mode: '0755'
+
+- name: Create systemd drop-in directory for scanbd
+  file:
+    path: /etc/systemd/system/scanbd.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Override scanbd environment (daemon uses /etc/scanbd)
+  copy:
+    dest: /etc/systemd/system/scanbd.service.d/override.conf
+    content: |
+      [Service]
+      Environment=SANE_CONFIG_DIR=/etc/scanbd
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart scanbd
+
+- name: Configure server-side dll.conf (fujitsu only)
+  template:
+    src: scanbd_dll.conf.j2
+    dest: /etc/scanbd/dll.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart scanbd
+
+- name: Configure client-side dll.conf (net only)
+  template:
+    src: client_dll.conf.j2
+    dest: /etc/sane.d/dll.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configure client-side net.conf (localhost)
+  template:
+    src: net.conf.j2
+    dest: /etc/sane.d/net.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configure scanbd trigger script
+  template:
+    src: scan_button.sh.j2
+    dest: /etc/scanbd/scripts/scan_button.sh
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Enable and start scanbd
+  service:
+    name: scanbd
+    state: started
+    enabled: true
+    daemon_reload: true
+
+
+- name: Allow PDF read/write in ImageMagick policy
+  replace:
+    path: /etc/ImageMagick-6/policy.xml
+    regexp: '(<policy domain="coder" rights="none" pattern="PDF" />)'
+    replace: '<!-- \1 -->'
+  notify:
+    # No service restart needed for IM policy, but good practice if we had one
+    - Verify ImageMagick Policy
+
+- name: Create scripts directory
+  file:
+    path: /home/{{ ansible_user }}/scripts
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Ensure user is in scanner group
+  user:
+    name: "{{ ansible_user }}"
+    groups: scanner
+    append: true
+
+- name: Configure scanbd trigger script
+  template:
+    src: scan_button.sh.j2
+    dest: /etc/scanbd/scripts/scan_button.sh
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy scanning script to KubePi
+  copy:
+    src: scripts/scan_to_pdf.sh
+    dest: /home/{{ ansible_user }}/scripts/scan_to_pdf.sh
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
