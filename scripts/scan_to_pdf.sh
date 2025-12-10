@@ -8,7 +8,7 @@ DATEI=Scan_Color_$(date +%Y%m%d_%H%M%S)
 echo "--- Starting Color Scan (${RESOLUTION} dpi, Duplex) ---"
 
 # 1. Scan and save as TIFF (Batch mode for Duplex)
-# --batch-format is not supported, but --format=tiff works with --batch.
+
 scanimage \
   --device "$SCANNER_ID" \
   --resolution $RESOLUTION \
