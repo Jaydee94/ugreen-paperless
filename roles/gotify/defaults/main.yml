@@ -1,0 +1,9 @@
+---
+gotify_user: paperless
+gotify_group: paperless
+gotify_uid: 1100
+gotify_gid: 1100
+gotify_base_dir: /opt/gotify
+gotify_port: 8085
+gotify_image: gotify/server
+gotify_password: admin # Initial password, though gotify changes it on first login usually or requires setup. Actually gotify has a default admin:admin.

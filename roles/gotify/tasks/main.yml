@@ -1,0 +1,48 @@
+---
+- name: Ensure group exists
+  ansible.builtin.group:
+    name: "{{ gotify_group }}"
+    gid: "{{ gotify_gid }}"
+    state: present
+
+- name: Ensure user exists
+  ansible.builtin.user:
+    name: "{{ gotify_user }}"
+    uid: "{{ gotify_uid }}"
+    group: "{{ gotify_group }}"
+    createhome: false
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: Create gotify directory
+  ansible.builtin.file:
+    path: "{{ gotify_base_dir }}"
+    state: directory
+    owner: "{{ gotify_user }}"
+    group: "{{ gotify_group }}"
+    mode: '0755'
+
+- name: Deploy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ gotify_base_dir }}/docker-compose.yml"
+    owner: "{{ gotify_user }}"
+    group: "{{ gotify_group }}"
+    mode: '0644'
+
+- name: Start Gotify
+  ansible.builtin.shell: |
+    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+      docker compose up -d
+    elif command -v docker-compose >/dev/null 2>&1; then
+      docker-compose up -d
+    else
+      echo "No docker compose found"
+      exit 1
+    fi
+  args:
+    chdir: "{{ gotify_base_dir }}"
+  register: compose_up
+  changed_when: false
+
+

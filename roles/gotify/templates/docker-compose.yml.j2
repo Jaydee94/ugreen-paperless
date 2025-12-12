@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  gotify:
+    image: {{ gotify_image }}
+    restart: always
+    ports:
+      - "{{ gotify_port }}:80"
+    environment:
+      - GOTIFY_DEFAULTUSER_PASS={{ gotify_password | default('admin') }}
+    volumes:
+      - "./data:/app/data"

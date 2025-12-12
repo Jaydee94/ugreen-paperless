@@ -27,7 +27,7 @@
     group: root
     mode: '0755'
 
-    mode: '0755'
+
 
 - name: Create systemd drop-in directory for scanbd
   file:
@@ -121,8 +121,8 @@
     mode: '0755'
 
 - name: Copy scanning script to KubePi
-  copy:
-    src: scripts/scan_to_pdf.sh
+  template:
+    src: "{{ playbook_dir }}/scripts/scan_to_pdf.sh"
     dest: /home/{{ ansible_user }}/scripts/scan_to_pdf.sh
     mode: '0755'
     owner: "{{ ansible_user }}"

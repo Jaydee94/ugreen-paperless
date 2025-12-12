@@ -6,4 +6,5 @@
   become: true
   roles:
     - paperless
+    - gotify
 
