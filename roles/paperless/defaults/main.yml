@@ -37,6 +37,10 @@ paperless_db_user: paperless
 paperless_db_password: paperless_pass_change_me
 paperless_db_name: paperless
 
+# Postgres UID/GID (70:70 is standard for postgres:alpine images)
+paperless_db_uid: 70
+paperless_db_gid: 70
+
 # Compose file name
 paperless_compose_file: docker-compose.yml
 

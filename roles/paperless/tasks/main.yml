@@ -144,7 +144,14 @@
     - "{{ paperless_base_dir }}"
     - "{{ paperless_media_dir }}"
     - "{{ paperless_data_dir }}"
-    - "{{ paperless_db_dir }}"
+
+- name: Create database directory
+  ansible.builtin.file:
+    path: "{{ paperless_db_dir }}"
+    state: directory
+    owner: "{{ paperless_db_uid }}"
+    group: "{{ paperless_db_gid }}"
+    mode: '0700'
 
 - name: Deploy .env file
   ansible.builtin.template:
