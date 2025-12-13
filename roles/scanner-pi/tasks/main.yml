@@ -7,8 +7,25 @@
       - sane-utils
       - bc
       - scanbd
+      - cifs-utils
     state: present
     update_cache: true
+
+- name: Create mount point for Paperless consume
+  file:
+    path: "{{ paperless_mount_point }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Mount Paperless consume share
+  mount:
+    path: "{{ paperless_mount_point }}"
+    src: "{{ paperless_smb_share }}"
+    fstype: cifs
+    opts: "username={{ paperless_smb_user }},password={{ paperless_smb_password }},uid={{ ansible_user }},gid={{ ansible_user }},vers=3.0,file_mode=0777,dir_mode=0777"
+    state: mounted
 
 - name: Configure scanbd (scanbd.conf)
   template:

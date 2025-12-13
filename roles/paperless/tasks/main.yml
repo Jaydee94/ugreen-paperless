@@ -144,6 +144,7 @@
     - "{{ paperless_base_dir }}"
     - "{{ paperless_media_dir }}"
     - "{{ paperless_data_dir }}"
+    - "{{ paperless_consume_dir }}"
 
 - name: Create database directory
   ansible.builtin.file:

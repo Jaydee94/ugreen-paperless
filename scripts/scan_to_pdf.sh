@@ -2,7 +2,7 @@
 
 # Configuration
 SCANNER_ID="fujitsu:ScanSnap iX500:1234992"
-RESOLUTION="300"
+RESOLUTION="200"
 DATEI=Scan_Color_$(date +%Y%m%d_%H%M%S)
 
 # Gotify Configuration
@@ -83,4 +83,17 @@ fi
 rm "${DATEI}"_*.tif
 
 echo "✅ Scan completed successfully. PDF: ${DATEI}.pdf"
-send_notification "✅ Scan Success" "📄 PDF created: ${DATEI}.pdf" 5
+
+# 4. Move to Paperless Consume Directory
+echo "--- Moving to Paperless Consume Directory ---"
+mv "${DATEI}.pdf" "{{ paperless_mount_point }}/"
+
+MOVE_STATUS=$?
+if [ $MOVE_STATUS -ne 0 ]; then
+    echo "❌ ERROR moving file to {{ paperless_mount_point }} (Exit Code $MOVE_STATUS)."
+    send_notification "❌ Scan Failed" "Error moving file to consume folder. 📂" 8
+    exit 1
+fi
+
+echo "✅ File moved to {{ paperless_mount_point }}/${DATEI}.pdf"
+send_notification "✅ Scan Success" "📄 PDF sent to Paperless: ${DATEI}.pdf" 5

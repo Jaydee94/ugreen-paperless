@@ -15,6 +15,7 @@ paperless_db_dir: "{{ paperless_base_dir }}/db"
 
 # Backup settings
 paperless_backup_dir: "{{ paperless_base_dir }}/backups"
+paperless_consume_dir: "{{ paperless_base_dir }}/consume"
 paperless_export_dir: "{{ paperless_base_dir }}/export"
 paperless_backup_retention_days: 7
 paperless_backup_schedule: "0 2 * * *"
@@ -23,7 +24,7 @@ paperless_backup_schedule: "0 2 * * *"
 paperless_http_port: 8000
 
 # Images and tags
-paperless_image: ghcr.io/paperless-ngx/paperless-ngx:2.12.0
+paperless_image: ghcr.io/paperless-ngx/paperless-ngx:2.20.2
 paperless_db_image: postgres:16-alpine
 paperless_redis_image: redis:7-alpine
 paperless_ai_image: clusterzx/paperless-ai

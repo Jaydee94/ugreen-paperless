@@ -1,0 +1,7 @@
+---
+# Defaults for scanner-pi role
+
+paperless_smb_share: "//jays-ugreen/personal_folder/paperless/consume"
+paperless_smb_user: "jaydee"
+paperless_smb_password: "" # Set this in vault or inventory if needed
+paperless_mount_point: "/mnt/paperless-consume"
