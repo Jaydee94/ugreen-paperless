@@ -9,7 +9,7 @@ paperless_ai_gid: 1101
 paperless_ai_base_dir: /opt/paperless-ai
 paperless_ai_data_dir: "{{ paperless_ai_base_dir }}/data"
 
-paperless_ai_image: clusterzx/paperless-ai
+paperless_ai_image: clusterzx/paperless-ai:3.0.9
 paperless_ai_port: 3000
 
 # URL of the main paperless instance

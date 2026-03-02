@@ -24,10 +24,10 @@ paperless_backup_schedule: "0 2 * * *"
 paperless_http_port: 8000
 
 # Images and tags
-paperless_image: ghcr.io/paperless-ngx/paperless-ngx:2.20.2
+paperless_image: ghcr.io/paperless-ngx/paperless-ngx:2.20.9
 paperless_db_image: postgres:16-alpine
 paperless_redis_image: redis:7-alpine
-paperless_ai_image: clusterzx/paperless-ai
+paperless_ai_image: clusterzx/paperless-ai:3.0.9
 
 # Paperless-AI settings
 paperless_ai_port: 3000

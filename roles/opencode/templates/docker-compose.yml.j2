@@ -1,0 +1,18 @@
+---
+services:
+  opencode:
+    image: "{{ opencode_image }}:{{ opencode_version }}"
+    container_name: opencode
+    restart: unless-stopped
+    ports:
+      - "{{ opencode_port }}:{{ opencode_port }}"
+    volumes:
+      - "{{ opencode_install_dir }}/data:/root/.opencode"
+      # Mount the host filesystem or specific directories as needed for the agent to access code
+      - "/:/workspace:rw" 
+    command: >
+      web --hostname {{ opencode_host }} --port {{ opencode_port }}
+    environment:
+      - OPENCODE_SERVER_PASSWORD={{ opencode_server_password | default('') }}
+      # Optional: Add any necessary API keys for LLMs here if passing via env vars
+      # - OPENAI_API_KEY={{ openai_api_key | default('') }}

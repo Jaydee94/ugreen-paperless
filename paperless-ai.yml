@@ -5,3 +5,4 @@
   roles:
     - paperless-ai
     - scanner-pi
+    - opencode

@@ -1,0 +1,13 @@
+---
+# Default variables for opencode role
+
+opencode_install_dir: "/opt/opencode"
+opencode_image: "ghcr.io/anomalyco/opencode"
+opencode_version: "latest"
+
+# Web Interface Settings
+opencode_port: 8080
+opencode_host: "0.0.0.0"
+
+# Optional: Add server password for security
+# opencode_server_password: "your_secure_password"
