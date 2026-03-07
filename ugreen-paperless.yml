@@ -7,4 +7,5 @@
   roles:
     - paperless
     - gotify
+    - monitoring
 
