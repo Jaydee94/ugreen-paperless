@@ -33,7 +33,7 @@ The setup is split across two hosts:
 4. Run the playbook:
 
 ```bash
-ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass --ask-pass
 ```
 
 ### Deploying to Kubepi (Paperless-AI + scanner + OpenCode)
@@ -164,7 +164,7 @@ ansible-vault encrypt_string 'supersecret-passw0rd' --name 'paperless_db_passwor
 Run the playbook and provide the vault password at runtime, or configure a vault identity in your Ansible config:
 
 ```bash 
-ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass --ask-pass
 
 ```
 
