@@ -1,0 +1,4 @@
+---
+# Default variables for the node-exporter role
+node_exporter_image: prom/node-exporter:v1.9.1
+node_exporter_base_dir: /opt/node-exporter

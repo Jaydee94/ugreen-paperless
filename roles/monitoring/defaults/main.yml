@@ -1,0 +1,36 @@
+---
+# Default variables for the monitoring role
+# These can be overridden in group_vars/host_vars or playbooks
+
+monitoring_user: monitoring
+monitoring_group: monitoring
+monitoring_uid: 1200
+monitoring_gid: 1200
+
+# Base directory for monitoring stack files and data
+monitoring_base_dir: /opt/monitoring
+
+# Prometheus settings
+prometheus_image: prom/prometheus:v3.2.1
+prometheus_port: 9090
+prometheus_retention_time: 15d
+
+# Grafana settings
+grafana_image: grafana/grafana:11.5.2
+grafana_port: 3001
+grafana_admin_password: admin
+
+# Node Exporter settings (host system metrics)
+node_exporter_image: prom/node-exporter:v1.9.1
+
+# cAdvisor settings (container metrics)
+cadvisor_image: gcr.io/cadvisor/cadvisor:v0.51.0
+
+# Additional scrape targets to monitor remote hosts or services.
+# Each entry requires: job_name, host (hostname or IP), port.
+# Example:
+#   monitoring_extra_targets:
+#     - job_name: kubepi-node
+#       host: kubepi
+#       port: 9100
+monitoring_extra_targets: []

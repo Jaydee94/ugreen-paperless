@@ -1,0 +1,61 @@
+services:
+  prometheus:
+    image: "{{ prometheus_image }}"
+    restart: unless-stopped
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+      - "prometheus_data:/prometheus"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time={{ prometheus_retention_time }}'
+    ports:
+      - "{{ prometheus_port }}:9090"
+
+  grafana:
+    image: "{{ grafana_image }}"
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}
+    volumes:
+      - "grafana_data:/var/lib/grafana"
+      - "./grafana/provisioning:/etc/grafana/provisioning:ro"
+      - "./grafana/dashboards:/var/lib/grafana/dashboards:ro"
+    ports:
+      - "{{ grafana_port }}:3000"
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: "{{ node_exporter_image }}"
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+
+  cadvisor:
+    image: "{{ cadvisor_image }}"
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
+      - "/cgroup:/cgroup:ro"
+
+networks:
+  default:
+    name: monitoring_net
+
+volumes:
+  prometheus_data:
+  grafana_data:

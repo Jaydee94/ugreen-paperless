@@ -12,4 +12,8 @@ paperless_base_dir: /volume1/@home/jaydee/paperless
 # Predefined Paperless admin user (change these for production)
 paperless_admin_user: jaydee
 paperless_admin_email: jaydee@mydomain.com
-
+# Monitoring configuration
+monitoring_extra_targets:
+  - job_name: 'kubepi-node'
+    host: 'kubepi'
+    port: 9100

@@ -10,7 +10,7 @@ The setup is split across two hosts:
 
 | Host | Roles deployed | Purpose |
 |------|---------------|---------|
-| `ugreen-nas` | `paperless`, `gotify` | Ugreen NAS: runs paperless-ngx + Gotify notifications |
+| `ugreen-nas` | `paperless`, `gotify`, `monitoring` | Ugreen NAS: runs paperless-ngx + Gotify notifications + monitoring stack |
 | `kubepi` | `paperless-ai`, `scanner-pi`, `opencode` | Raspberry Pi: standalone Paperless-AI, scanner automation, and OpenCode |
 
 ## Contents
@@ -20,8 +20,9 @@ The setup is split across two hosts:
 - `roles/paperless-ai/` — Deploys [Paperless-AI](https://github.com/clusterzx/paperless-ai) as a standalone service on a separate host (e.g., `kubepi`).
 - `roles/scanner-pi/` — Configures a Raspberry Pi as a scan station: installs SANE/scanbd, mounts the paperless consume SMB share, and deploys a scan-to-PDF script.
 - `roles/opencode/` — Deploys [OpenCode](https://github.com/opencode-ai/opencode) (an AI coding assistant) as a Docker container.
+- `roles/monitoring/` — Deploys a lightweight monitoring stack (Prometheus + Grafana + Node Exporter + cAdvisor) with Docker Compose.
 - `inventory/` — Example inventory layout (hosts, group_vars, host_vars).
-- `ugreen-paperless.yml` — Playbook that deploys `paperless` + `gotify` to `ugreen-nas`.
+- `ugreen-paperless.yml` — Playbook that deploys `paperless`, `gotify`, and `monitoring` to `ugreen-nas`.
 - `paperless-ai.yml` — Playbook that deploys `paperless-ai`, `scanner-pi`, and `opencode` to `kubepi`.
 
 ## Quick start
@@ -32,7 +33,7 @@ The setup is split across two hosts:
 4. Run the playbook:
 
 ```bash
-ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass --ask-pass
 ```
 
 ### Deploying to Kubepi (Paperless-AI + scanner + OpenCode)
@@ -110,6 +111,26 @@ Key configurable variables are in `roles/opencode/defaults/main.yml`. Important 
 - `opencode_image` / `opencode_version` — Docker image and tag (default: `ghcr.io/anomalyco/opencode:latest`).
 - `opencode_server_password` — optional password to protect the web interface.
 
+## Role: `monitoring` (summary)
+
+Deploys a lightweight monitoring stack (Prometheus + Grafana + Node Exporter + cAdvisor) via Docker Compose on `ugreen-nas`. This gives you basic insight into the performance and availability of all services running on the NAS and optionally any remote hosts (e.g. `kubepi`).
+
+| Component | Purpose |
+|-----------|---------|
+| Prometheus | Collects and stores metrics |
+| Grafana | Visualises metrics; Prometheus datasource is provisioned automatically |
+| Node Exporter | Exposes host-level system metrics (CPU, memory, disk, network) |
+| cAdvisor | Exposes per-container metrics for all Docker containers on the host |
+
+Key configurable variables are in `roles/monitoring/defaults/main.yml`. Important ones:
+
+- `monitoring_base_dir` — base directory for the stack (default: `/opt/monitoring`).
+- `prometheus_port` — host port for Prometheus UI (default: `9090`).
+- `grafana_port` — host port for Grafana UI (default: `3001`).
+- `grafana_admin_password` — initial Grafana admin password (default: `admin`; **change before deploying**).
+- `prometheus_retention_time` — how long Prometheus keeps metrics (default: `15d`).
+- `monitoring_extra_targets` — list of additional Prometheus scrape targets for remote hosts (see `roles/monitoring/README.md`).
+
 ## Security and secrets
 
 - Do not store secrets in plaintext in the repository. Use Ansible Vault (`ansible-vault`) or environment-specific `host_vars` files that are not committed to source control.
@@ -143,7 +164,7 @@ ansible-vault encrypt_string 'supersecret-passw0rd' --name 'paperless_db_passwor
 Run the playbook and provide the vault password at runtime, or configure a vault identity in your Ansible config:
 
 ```bash 
-ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass --ask-pass
 
 ```
 
@@ -211,6 +232,20 @@ Example (default):
     http://192.168.1.101:8080
 
 If `opencode_server_password` is set, you will be prompted for it on first access.
+
+### Monitoring (ugreen-nas)
+
+After running the `ugreen-paperless.yml` playbook, the monitoring stack is available on the NAS:
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Prometheus | `http://<NAS-IP>:9090` | Metrics query and status |
+| Grafana | `http://<NAS-IP>:3001` | Dashboards and visualisation |
+
+Log in to Grafana with username `admin` and the password set in `grafana_admin_password`. The Prometheus datasource is provisioned automatically. To get started, import community dashboards from [grafana.com/grafana/dashboards](https://grafana.com/grafana/dashboards/):
+
+- **Node Exporter Full** (ID `1860`) — detailed host metrics
+- **Docker Containers** (ID `11600`) — per-container resource usage
 
 ## License
 
