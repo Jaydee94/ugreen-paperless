@@ -31,9 +31,25 @@
     group: "{{ monitoring_group }}"
     mode: '0755'
 
+- name: Create Grafana provisioning dashboards directory
+  ansible.builtin.file:
+    path: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards"
+    state: directory
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    mode: '0755'
+
 - name: Create Grafana provisioning datasources directory
   ansible.builtin.file:
     path: "{{ monitoring_base_dir }}/grafana/provisioning/datasources"
+    state: directory
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    mode: '0755'
+
+- name: Create Grafana dashboards data directory
+  ansible.builtin.file:
+    path: "{{ monitoring_base_dir }}/grafana/dashboards"
     state: directory
     owner: "{{ monitoring_user }}"
     group: "{{ monitoring_group }}"
@@ -55,6 +71,28 @@
     owner: "{{ monitoring_user }}"
     group: "{{ monitoring_group }}"
     mode: '0644'
+  notify: Restart monitoring compose
+
+- name: Deploy Grafana dashboards provisioning
+  ansible.builtin.template:
+    src: grafana-dashboards.yml.j2
+    dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/dashboards.yml"
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    mode: '0644'
+  notify: Restart monitoring compose
+
+- name: Deploy Grafana dashboard JSON files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ monitoring_base_dir }}/grafana/dashboards/{{ item | basename }}"
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    mode: '0644'
+  loop:
+    - node-exporter-full.json
+    - docker-containers.json
+    - postgresql.json
   notify: Restart monitoring compose
 
 - name: Deploy docker-compose.yml
