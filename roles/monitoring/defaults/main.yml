@@ -15,6 +15,9 @@ prometheus_image: prom/prometheus:v3.2.1
 prometheus_port: 9090
 prometheus_retention_time: 15d
 
+# Grafana Alloy settings (metrics collector and service health prober)
+alloy_image: grafana/alloy:v1.7.5
+
 # Grafana settings
 grafana_image: grafana/grafana:11.5.2
 grafana_port: 3001
@@ -34,3 +37,18 @@ cadvisor_image: gcr.io/cadvisor/cadvisor:v0.51.0
 #       host: kubepi
 #       port: 9100
 monitoring_extra_targets: []
+
+# HTTP probe targets for service health monitoring.
+# Alloy's built-in blackbox component will probe each URL every 30 seconds.
+# Each entry requires: name (label), url (full HTTP/HTTPS URL).
+# Example:
+#   monitoring_probe_targets:
+#     - name: paperless
+#       url: http://ugreen-nas:8000
+#     - name: gotify
+#       url: http://ugreen-nas:8085
+monitoring_probe_targets: []
+
+# Timeout for HTTP health probes (e.g. "5s", "10s").
+# Increase this for services that have slower startup or response times.
+monitoring_probe_timeout: 5s

@@ -17,3 +17,18 @@ monitoring_extra_targets:
   - job_name: 'kubepi-node'
     host: 'kubepi'
     port: 9100
+
+# HTTP probe targets for service health dashboard
+monitoring_probe_targets:
+  - name: paperless
+    url: "http://ugreen-nas:8000"
+  - name: gotify
+    url: "http://ugreen-nas:8085"
+  - name: prometheus
+    url: "http://ugreen-nas:9090/-/healthy"
+  - name: grafana
+    url: "http://ugreen-nas:3001/api/health"
+  - name: paperless-ai
+    url: "http://kubepi:3000"
+  - name: opencode
+    url: "http://kubepi:8080"

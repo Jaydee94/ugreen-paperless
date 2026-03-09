@@ -1,0 +1,83 @@
+// Grafana Alloy Configuration
+// Collects metrics from local exporters, probes service health,
+// and forwards everything to Prometheus via remote_write.
+
+// ============================================================
+// Local Metrics Scraping
+// ============================================================
+
+// Scrape Node Exporter for host system metrics (CPU, memory, disk, network)
+prometheus.scrape "node_exporter" {
+  targets         = [{"__address__" = "node-exporter:9100"}]
+  scrape_interval = "15s"
+  job_name        = "node-exporter"
+  forward_to      = [prometheus.remote_write.default.receiver]
+}
+
+// Scrape cAdvisor for Docker container metrics
+prometheus.scrape "cadvisor" {
+  targets         = [{"__address__" = "cadvisor:8080"}]
+  scrape_interval = "15s"
+  job_name        = "cadvisor"
+  forward_to      = [prometheus.remote_write.default.receiver]
+}
+
+{% if monitoring_extra_targets | length > 0 %}
+// Scrape remote node-exporter and other extra targets
+prometheus.scrape "extra_targets" {
+  targets = [
+{% for target in monitoring_extra_targets %}
+    {"__address__" = "{{ target.host }}:{{ target.port }}", "job" = "{{ target.job_name }}"},
+{% endfor %}
+  ]
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.default.receiver]
+}
+{% endif %}
+
+{% if monitoring_probe_targets | length > 0 %}
+// ============================================================
+// Service Health Checks (HTTP Probes via built-in Blackbox)
+// ============================================================
+
+prometheus.exporter.blackbox "services" {
+  config = `
+modules:
+  http_2xx:
+    prober: http
+    # Empty valid_status_codes means the blackbox exporter default applies:
+    # only 2xx responses are considered successful.
+    timeout: {{ monitoring_probe_timeout }}
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: []
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+`
+{% for target in monitoring_probe_targets %}
+  target {
+    name    = "{{ target.name }}"
+    address = "{{ target.url }}"
+    module  = "http_2xx"
+  }
+{% endfor %}
+}
+
+prometheus.scrape "blackbox" {
+  targets         = prometheus.exporter.blackbox.services.targets
+  scrape_interval = "30s"
+  job_name        = "blackbox"
+  forward_to      = [prometheus.remote_write.default.receiver]
+}
+{% endif %}
+
+// ============================================================
+// Remote Write to Prometheus TSDB
+// ============================================================
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}

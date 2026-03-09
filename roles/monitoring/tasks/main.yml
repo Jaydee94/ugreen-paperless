@@ -1,6 +1,6 @@
 ---
-# Tasks to deploy the lightweight monitoring stack (Prometheus + Grafana +
-# Node Exporter + cAdvisor) via Docker Compose on the target host.
+# Tasks to deploy the monitoring stack (Prometheus + Grafana Alloy +
+# Grafana + Node Exporter + cAdvisor) via Docker Compose on the target host.
 
 - name: Ensure monitoring group exists
   ansible.builtin.group:
@@ -55,10 +55,27 @@
     group: "{{ monitoring_group }}"
     mode: '0755'
 
+- name: Create Alloy configuration directory
+  ansible.builtin.file:
+    path: "{{ monitoring_base_dir }}/alloy"
+    state: directory
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    mode: '0755'
+
 - name: Deploy Prometheus configuration
   ansible.builtin.template:
     src: prometheus.yml.j2
     dest: "{{ monitoring_base_dir }}/prometheus.yml"
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    mode: '0644'
+  notify: Restart monitoring compose
+
+- name: Deploy Grafana Alloy configuration
+  ansible.builtin.template:
+    src: alloy-config.alloy.j2
+    dest: "{{ monitoring_base_dir }}/alloy/config.alloy"
     owner: "{{ monitoring_user }}"
     group: "{{ monitoring_group }}"
     mode: '0644'
@@ -93,6 +110,8 @@
     - node-exporter-full.json
     - docker-containers.json
     - postgresql.json
+    - services-health.json
+    - applications-overview.json
   notify: Restart monitoring compose
 
 - name: Deploy docker-compose.yml
