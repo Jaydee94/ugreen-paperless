@@ -78,15 +78,13 @@ Each target is probed with an HTTP GET request. The following Prometheus metrics
 
 ## Pre-built dashboards
 
-The role ships five Grafana dashboards that are provisioned automatically:
+The role ships three Grafana dashboards that are provisioned automatically:
 
 | Dashboard | File | Description |
 |-----------|------|-------------|
 | **Services Health** | `services-health.json` | HTTP probe status, response times, and uptime history for all configured services |
 | **Applications Overview** | `applications-overview.json` | CPU, memory, and network usage per application (Paperless, Gotify, Paperless-AI, OpenCode) |
 | **Node Exporter Full** | `node-exporter-full.json` | Detailed host system metrics |
-| **Docker Containers** | `docker-containers.json` | Per-container resource usage |
-| **PostgreSQL Database** | `postgresql.json` | Database metrics (requires `postgres_exporter` target) |
 
 ## Accessing services
 

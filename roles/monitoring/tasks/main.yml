@@ -108,8 +108,6 @@
     mode: '0644'
   loop:
     - node-exporter-full.json
-    - docker-containers.json
-    - postgresql.json
     - services-health.json
     - applications-overview.json
   notify: Restart monitoring compose
