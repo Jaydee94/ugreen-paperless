@@ -9,8 +9,23 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time={{ prometheus_retention_time }}'
+      - '--web.enable-remote-write-receiver'
     ports:
       - "{{ prometheus_port }}:9090"
+
+  alloy:
+    image: "{{ alloy_image }}"
+    restart: unless-stopped
+    volumes:
+      - "./alloy/config.alloy:/etc/alloy/config.alloy:ro"
+    command:
+      - 'run'
+      - '--server.http.listen-addr=0.0.0.0:12345'
+      - '/etc/alloy/config.alloy'
+    depends_on:
+      - prometheus
+      - node-exporter
+      - cadvisor
 
   grafana:
     image: "{{ grafana_image }}"
