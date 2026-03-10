@@ -1,0 +1,6 @@
+---
+# Host-specific overrides for kubepi
+# cAdvisor v0.49.1 is more reliable on some ARM/Docker setups for container labels.
+cadvisor_image: gcr.io/cadvisor/cadvisor:v0.49.1
+# Keep host port explicit for Alloy remote scrape target.
+cadvisor_port: 18080

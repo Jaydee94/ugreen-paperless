@@ -14,6 +14,28 @@ services:
     ports:
       - "9100:9100"
 
+  cadvisor:
+    image: "{{ cadvisor_image }}"
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/run/containerd/containerd.sock:/run/containerd/containerd.sock:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
+    command:
+      - '--docker_only=false'
+      - '--containerd=/run/containerd/containerd.sock'
+      - '--store_container_labels=true'
+      - '--whitelisted_container_labels=com.docker.compose.project,com.docker.compose.service,com.docker.compose.container-number'
+    ports:
+      - "{{ cadvisor_port }}:8080"
+
 networks:
   default:
     name: monitoring_net
