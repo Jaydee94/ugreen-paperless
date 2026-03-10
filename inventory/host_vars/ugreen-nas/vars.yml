@@ -13,22 +13,30 @@ paperless_base_dir: /volume1/@home/jaydee/paperless
 paperless_admin_user: jaydee
 paperless_admin_email: jaydee@mydomain.com
 # Monitoring configuration
+# Stable hostname for monitoring probes to kubepi services.
+# Keep separate from inventory ansible_host so SSH resolution can differ.
+kubepi_probe_host: kubepi
+monitoring_probe_timeout: 12s
+
 monitoring_extra_targets:
   - job_name: 'kubepi-node'
     host: 'kubepi'
     port: 9100
+  - job_name: 'cadvisor'
+    host: 'kubepi'
+    port: 18080
 
 # HTTP probe targets for service health dashboard
 monitoring_probe_targets:
   - name: paperless
-    url: "http://ugreen-nas:8000"
+    url: "http://{{ hostvars['ugreen-nas'].ansible_host }}:8000"
   - name: gotify
-    url: "http://ugreen-nas:8085"
+    url: "http://{{ hostvars['ugreen-nas'].ansible_host }}:8085"
   - name: prometheus
-    url: "http://ugreen-nas:9090/-/healthy"
+    url: "http://{{ hostvars['ugreen-nas'].ansible_host }}:9090/-/healthy"
   - name: grafana
-    url: "http://ugreen-nas:3001/api/health"
+    url: "http://{{ hostvars['ugreen-nas'].ansible_host }}:3001/api/health"
   - name: paperless-ai
-    url: "http://kubepi:3000"
+    url: "http://{{ kubepi_probe_host }}:3000/health"
   - name: opencode
-    url: "http://kubepi:8080"
+    url: "http://{{ kubepi_probe_host }}:8080"

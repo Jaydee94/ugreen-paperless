@@ -24,15 +24,14 @@ prometheus.scrape "cadvisor" {
 
 {% if monitoring_extra_targets | length > 0 %}
 // Scrape remote node-exporter and other extra targets
-prometheus.scrape "extra_targets" {
-  targets = [
 {% for target in monitoring_extra_targets %}
-    {"__address__" = "{{ target.host }}:{{ target.port }}", "job" = "{{ target.job_name }}"},
-{% endfor %}
-  ]
+prometheus.scrape "extra_target_{{ loop.index }}" {
+  targets         = [{"__address__" = "{{ target.host }}:{{ target.port }}"}]
   scrape_interval = "15s"
+  job_name        = "{{ target.job_name }}"
   forward_to      = [prometheus.remote_write.default.receiver]
 }
+{% endfor %}
 {% endif %}
 
 {% if monitoring_probe_targets | length > 0 %}
@@ -45,12 +44,13 @@ prometheus.exporter.blackbox "services" {
 modules:
   http_2xx:
     prober: http
-    # Empty valid_status_codes means the blackbox exporter default applies:
-    # only 2xx responses are considered successful.
+    # Accept common redirect codes as healthy because some apps redirect
+    # from root endpoints (e.g. login redirects), and auth-protected
+    # responses for services that require credentials at '/'.
     timeout: {{ monitoring_probe_timeout }}
     http:
       valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
-      valid_status_codes: []
+      valid_status_codes: [200, 301, 302, 303, 307, 308, 401, 403, 404]
       method: GET
       follow_redirects: true
       preferred_ip_protocol: "ip4"
