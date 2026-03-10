@@ -52,3 +52,18 @@ monitoring_probe_targets: []
 # Timeout for HTTP health probes (e.g. "5s", "10s").
 # Increase this for services that have slower startup or response times.
 monitoring_probe_timeout: 5s
+
+# Built-in dashboards shipped with this role.
+monitoring_builtin_dashboards:
+  - services-health.json
+  - applications-overview.json
+
+# Community dashboards to auto-download and provision in Grafana.
+# Set enabled: false on any entry you do not want.
+monitoring_community_dashboards:
+  - name: node-exporter-full.json
+    url: https://grafana.com/api/dashboards/1860/revisions/42/download
+    enabled: true
+  - name: cadvisor-exporter.json
+    url: https://grafana.com/api/dashboards/14282/revisions/1/download
+    enabled: true

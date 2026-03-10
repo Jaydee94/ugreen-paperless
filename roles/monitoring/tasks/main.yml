@@ -99,6 +99,35 @@
     mode: '0644'
   notify: Restart monitoring compose
 
+- name: Define managed Grafana dashboard files
+  ansible.builtin.set_fact:
+    monitoring_managed_dashboards: >-
+      {{
+        (monitoring_builtin_dashboards | default([]))
+        + (
+          (monitoring_community_dashboards | default([])
+          | selectattr('enabled', 'equalto', true)
+          | map(attribute='name')
+          | list)
+        )
+      }}
+
+- name: Find existing Grafana dashboard JSON files
+  ansible.builtin.find:
+    paths: "{{ monitoring_base_dir }}/grafana/dashboards"
+    patterns: "*.json"
+    file_type: file
+  register: grafana_dashboard_files
+
+- name: Remove unmanaged Grafana dashboard JSON files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop:
+    "{{ grafana_dashboard_files.files }}"
+  when: item.path | basename not in monitoring_managed_dashboards
+  notify: Restart monitoring compose
+
 - name: Deploy Grafana dashboard JSON files
   ansible.builtin.copy:
     src: "{{ item }}"
@@ -106,10 +135,17 @@
     owner: "{{ monitoring_user }}"
     group: "{{ monitoring_group }}"
     mode: '0644'
-  loop:
-    - node-exporter-full.json
-    - services-health.json
-    - applications-overview.json
+  loop: "{{ monitoring_builtin_dashboards | default([]) }}"
+  notify: Restart monitoring compose
+
+- name: Download community Grafana dashboard JSON files
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ monitoring_base_dir }}/grafana/dashboards/{{ item.name }}"
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    mode: '0644'
+  loop: "{{ monitoring_community_dashboards | default([]) | selectattr('enabled', 'equalto', true) | list }}"
   notify: Restart monitoring compose
 
 - name: Deploy docker-compose.yml

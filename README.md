@@ -242,10 +242,12 @@ After running the `ugreen-paperless.yml` playbook, the monitoring stack is avail
 | Prometheus | `http://<NAS-IP>:9090` | Metrics query and status |
 | Grafana | `http://<NAS-IP>:3001` | Dashboards and visualisation |
 
-Log in to Grafana with username `admin` and the password set in `grafana_admin_password`. The Prometheus datasource is provisioned automatically. To get started, import community dashboards from [grafana.com/grafana/dashboards](https://grafana.com/grafana/dashboards/):
+Log in to Grafana with username `admin` and the password set in `grafana_admin_password`. The Prometheus datasource and dashboards are provisioned automatically:
 
-- **Node Exporter Full** (ID `1860`) — detailed host metrics
-- **Docker Containers** (ID `11600`) — per-container resource usage
+- **Services Health** — HTTP probe status and response times for configured services
+- **Applications Overview** — per-application CPU, memory, and network usage
+- **Node Exporter Full** — detailed host system metrics
+- **cAdvisor Exporter** — container-level runtime metrics
 
 ## License
 

@@ -31,7 +31,10 @@ Node Exporter and cAdvisor run without exposed host ports — they are only acce
 | `cadvisor_image` | `gcr.io/cadvisor/cadvisor:v0.51.0` | cAdvisor Docker image |
 | `monitoring_extra_targets` | `[]` | Additional remote scrape targets (Node Exporter on other hosts) |
 | `monitoring_probe_targets` | `[]` | HTTP service health probe targets (see below) |
+| `kubepi_probe_host` | `kubepi` | Hostname used by NAS Alloy for probing Kubepi services (optional convenience variable in host vars) |
 | `monitoring_probe_timeout` | `5s` | Timeout for HTTP health probes; increase for slow-starting services |
+| `monitoring_builtin_dashboards` | `['services-health.json', 'applications-overview.json']` | Built-in dashboard JSON files shipped with the role |
+| `monitoring_community_dashboards` | see defaults | Community dashboard download list (`name`, `url`, `enabled`) |
 
 ## Monitoring remote hosts
 
@@ -68,7 +71,9 @@ monitoring_probe_targets:
     url: http://kubepi:8080
 ```
 
-Each target is probed with an HTTP GET request. The following Prometheus metrics are generated:
+Each target is probed with an HTTP GET request. By default, probes consider these HTTP status codes as healthy: `200`, `301`, `302`, `303`, `307`, `308`, `401`, `403`, `404`. This avoids false negatives for apps that require authentication or return not-found at `/` while still being reachable.
+
+The following Prometheus metrics are generated:
 
 | Metric | Description |
 |--------|-------------|
@@ -78,13 +83,23 @@ Each target is probed with an HTTP GET request. The following Prometheus metrics
 
 ## Pre-built dashboards
 
-The role ships three Grafana dashboards that are provisioned automatically:
+The role ships two Grafana dashboards that are provisioned automatically:
 
 | Dashboard | File | Description |
 |-----------|------|-------------|
 | **Services Health** | `services-health.json` | HTTP probe status, response times, and uptime history for all configured services |
 | **Applications Overview** | `applications-overview.json` | CPU, memory, and network usage per application (Paperless, Gotify, Paperless-AI, OpenCode) |
-| **Node Exporter Full** | `node-exporter-full.json` | Detailed host system metrics |
+
+By default, the role also downloads and provisions two community dashboards:
+
+| Dashboard | File | Source |
+|-----------|------|--------|
+| **Node Exporter Full** | `node-exporter-full.json` | Grafana dashboard ID `1860` |
+| **cAdvisor Exporter** | `cadvisor-exporter.json` | Grafana dashboard ID `14282` |
+
+You can disable or replace community dashboards by overriding `monitoring_community_dashboards`.
+
+The Services Health status cards/table use a short 5-minute `max_over_time()` window for `probe_success` so transient single-scrape failures do not immediately show a service as down. A separate Overview card, "Services Down (Now)", shows strict instant probe state for flap visibility.
 
 ## Accessing services
 
