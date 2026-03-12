@@ -5,5 +5,4 @@
   roles:
     - paperless-ai
     - scanner-pi
-    - opencode
     - node-exporter

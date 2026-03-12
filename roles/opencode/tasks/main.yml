@@ -15,6 +15,23 @@
     group: "root"
     mode: "0755"
 
+- name: Create OpenCode config directory
+  ansible.builtin.file:
+    path: "{{ opencode_install_dir }}/config"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Template opencode.json config
+  ansible.builtin.template:
+    src: "opencode.json.j2"
+    dest: "{{ opencode_install_dir }}/config/opencode.json"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+  notify: Restart OpenCode
+
 - name: Template docker-compose file for OpenCode
   ansible.builtin.template:
     src: "docker-compose.yml.j2"
@@ -30,3 +47,18 @@
     state: present
     pull: always
   register: _opencode_compose
+
+- name: Configure OpenCode scheduled tasks
+  ansible.builtin.cron:
+    name: "opencode-task-{{ item.name }}"
+    minute: "{{ item.minute | default('*') }}"
+    hour: "{{ item.hour | default('*') }}"
+    day: "{{ item.day | default('*') }}"
+    month: "{{ item.month | default('*') }}"
+    weekday: "{{ item.weekday | default('*') }}"
+    job: >-
+      docker exec {{ opencode_container_name }} opencode run -p {{ item.prompt | quote }}
+      >> /var/log/opencode-task-{{ item.name }}.log 2>&1
+    user: root
+    state: present
+  loop: "{{ opencode_scheduled_tasks }}"

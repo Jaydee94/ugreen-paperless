@@ -10,8 +10,8 @@ The setup is split across two hosts:
 
 | Host | Roles deployed | Purpose |
 |------|---------------|---------|
-| `ugreen-nas` | `paperless`, `gotify`, `monitoring` | Ugreen NAS: runs paperless-ngx + Gotify notifications + monitoring stack |
-| `kubepi` | `paperless-ai`, `scanner-pi`, `opencode` | Raspberry Pi: standalone Paperless-AI, scanner automation, and OpenCode |
+| `ugreen-nas` | `paperless`, `gotify`, `monitoring`, `opencode` | Ugreen NAS: runs paperless-ngx + Gotify notifications + monitoring stack + OpenCode AI assistant |
+| `kubepi` | `paperless-ai`, `scanner-pi` | Raspberry Pi: standalone Paperless-AI and scanner automation |
 
 ## Contents
 
@@ -36,9 +36,9 @@ The setup is split across two hosts:
 ansible-playbook -i inventory/hosts.yml ugreen-paperless.yml --ask-vault-pass --ask-become-pass --ask-pass
 ```
 
-### Deploying to Kubepi (Paperless-AI + scanner + OpenCode)
+### Deploying to Kubepi (Paperless-AI + scanner)
 
-To deploy the AI service, scanner automation, and OpenCode to a separate host (e.g., `kubepi`), use the dedicated playbook:
+To deploy the AI service and scanner automation to a separate host (e.g., `kubepi`), use the dedicated playbook:
 
 ```bash
 ansible-playbook -i inventory/hosts.yml paperless-ai.yml --ask-vault-pass --ask-become-pass --ask-pass
@@ -102,7 +102,7 @@ Key configurable variables are in `roles/scanner-pi/defaults/main.yml`. Importan
 
 ## Role: `opencode` (summary)
 
-Deploys [OpenCode](https://github.com/opencode-ai/opencode), a terminal-based AI coding assistant, as a Docker container with a web interface.
+Deploys [OpenCode](https://github.com/opencode-ai/opencode), a terminal-based AI coding assistant, as a Docker container with a web interface on the Ugreen NAS.
 
 Key configurable variables are in `roles/opencode/defaults/main.yml`. Important ones:
 
@@ -110,6 +110,45 @@ Key configurable variables are in `roles/opencode/defaults/main.yml`. Important 
 - `opencode_port` — host port mapped to the OpenCode web UI (default: 8080).
 - `opencode_image` / `opencode_version` — Docker image and tag (default: `ghcr.io/anomalyco/opencode:latest`).
 - `opencode_server_password` — optional password to protect the web interface.
+- `opencode_github_token` — GitHub personal access token with Copilot access (store in Ansible Vault).
+- `opencode_model` — default model to use (default: `copilot/gpt-4o`).
+- `opencode_scheduled_tasks` — list of cron-based scheduled tasks (see below).
+
+### GitHub Copilot integration
+
+Set `opencode_github_token` to a GitHub personal access token (classic or fine-grained) that has **GitHub Copilot** access. Store the token in Ansible Vault to keep it out of source control:
+
+```bash
+ansible-vault encrypt_string 'ghp_YourTokenHere' --name 'opencode_github_token'
+```
+
+Paste the encrypted value into `inventory/host_vars/ugreen-nas/vault.yml` (or any other vaulted file). OpenCode will then use the GitHub Copilot provider for all requests.
+
+You can also change the model via `opencode_model` (e.g. `copilot/claude-sonnet-4-5`).
+
+### Scheduled tasks
+
+Add recurring OpenCode tasks by setting `opencode_scheduled_tasks` in your host vars:
+
+```yaml
+opencode_scheduled_tasks:
+  - name: daily-code-review
+    minute: "0"
+    hour: "8"
+    day: "*"
+    month: "*"
+    weekday: "*"
+    prompt: "Review all recent changes in /workspace and summarise potential issues."
+  - name: weekly-docs
+    minute: "0"
+    hour: "9"
+    day: "*"
+    month: "*"
+    weekday: "1"
+    prompt: "Update the project README to reflect the latest changes."
+```
+
+Each task is installed as a root cron job that runs `docker exec opencode opencode run -p "<prompt>"` and appends output to `/var/log/opencode-task-<name>.log`.
 
 ## Role: `monitoring` (summary)
 
@@ -221,15 +260,15 @@ Example (default):
 
 You will need to configure your AI provider settings (OpenAI, Ollama, etc.) in the Paperless-AI interface upon first login.
 
-### OpenCode (kubepi)
+### OpenCode (ugreen-nas)
 
 OpenCode is available at:
 
-    http://<KUBEPI-IP>:<opencode_port>
+    http://<NAS-IP>:<opencode_port>
 
 Example (default):
 
-    http://192.168.1.101:8080
+    http://192.168.1.100:8080
 
 If `opencode_server_password` is set, you will be prompted for it on first access.
 

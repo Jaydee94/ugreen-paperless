@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "{{ opencode_model }}"{% if opencode_github_token | default('') %},
+  "provider": {
+    "copilot": {
+      "apiKey": "${GITHUB_TOKEN}"
+    }
+  }{% endif %}
+
+}

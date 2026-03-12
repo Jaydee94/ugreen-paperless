@@ -4,6 +4,7 @@
 opencode_install_dir: "/opt/opencode"
 opencode_image: "ghcr.io/anomalyco/opencode"
 opencode_version: "latest"
+opencode_container_name: "opencode"
 
 # Web Interface Settings
 opencode_port: 8080
@@ -11,3 +12,33 @@ opencode_host: "0.0.0.0"
 
 # Optional: Add server password for security
 # opencode_server_password: "your_secure_password"
+
+# GitHub Copilot Integration
+# Set this to a GitHub personal access token with Copilot access.
+# Store the actual token in Ansible Vault (see README for guidance).
+opencode_github_token: ""
+
+# Default model to use. When GitHub Copilot is configured, use "copilot/gpt-4o"
+# or another Copilot-backed model (e.g. "copilot/claude-sonnet-4-5").
+opencode_model: "copilot/gpt-4o"
+
+# Scheduled tasks (cron jobs that run opencode non-interactively inside the container).
+# Each entry requires:
+#   name     – label used for the cron job comment and log file
+#   minute   – cron minute field  (default: "*")
+#   hour     – cron hour field    (default: "*")
+#   day      – cron day field     (default: "*")
+#   month    – cron month field   (default: "*")
+#   weekday  – cron weekday field (default: "*")
+#   prompt   – OpenCode prompt string passed to `opencode run -p`
+#
+# Example:
+# opencode_scheduled_tasks:
+#   - name: daily-code-review
+#     minute: "0"
+#     hour: "8"
+#     day: "*"
+#     month: "*"
+#     weekday: "*"
+#     prompt: "Review all recent changes in /workspace and summarise potential issues."
+opencode_scheduled_tasks: []
