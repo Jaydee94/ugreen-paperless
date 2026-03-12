@@ -10,8 +10,10 @@ The setup is split across two hosts:
 
 | Host | Roles deployed | Purpose |
 |------|---------------|---------|
-| `ugreen-nas` | `paperless`, `gotify`, `monitoring` | Ugreen NAS: runs paperless-ngx + Gotify notifications + monitoring stack |
-| `kubepi` | `paperless-ai`, `scanner-pi`, `opencode` | Raspberry Pi: standalone Paperless-AI, scanner automation, and OpenCode |
+| `ugreen-nas` | `paperless`, `gotify`, `monitoring`, `opencode` | Ugreen NAS: runs paperless-ngx + Gotify notifications + monitoring stack + OpenCode |
+| `kubepi` | `paperless-ai`, `scanner-pi`, `opencode`, `node-exporter` | Raspberry Pi: standalone Paperless-AI, scanner automation, OpenCode (optional), and node metrics |
+
+> **Note:** OpenCode is deployed on both hosts. The NAS instance (`ugreen-paperless.yml`) and the Kubepi instance (`paperless-ai.yml`) are independent; each can be configured with its own port, password, and AI provider.
 
 ## Contents
 
@@ -110,6 +112,8 @@ Key configurable variables are in `roles/opencode/defaults/main.yml`. Important 
 - `opencode_port` — host port mapped to the OpenCode web UI (default: 8080).
 - `opencode_image` / `opencode_version` — Docker image and tag (default: `ghcr.io/anomalyco/opencode:latest`).
 - `opencode_server_password` — optional password to protect the web interface.
+- `opencode_github_copilot_enabled` — set to `true` to enable GitHub Copilot as the AI provider (default: `false`).
+- `opencode_github_token` — GitHub personal access token with Copilot access. Store this using Ansible Vault (see [Security and secrets](#security-and-secrets)). Required when `opencode_github_copilot_enabled: true`.
 
 ## Role: `monitoring` (summary)
 
@@ -221,17 +225,40 @@ Example (default):
 
 You will need to configure your AI provider settings (OpenAI, Ollama, etc.) in the Paperless-AI interface upon first login.
 
-### OpenCode (kubepi)
+### OpenCode (ugreen-nas and kubepi)
 
 OpenCode is available at:
 
-    http://<KUBEPI-IP>:<opencode_port>
+    http://<HOST-IP>:<opencode_port>
 
-Example (default):
+Example (default, NAS):
+
+    http://192.168.1.100:8080
+
+Example (default, kubepi):
 
     http://192.168.1.101:8080
 
 If `opencode_server_password` is set, you will be prompted for it on first access.
+
+#### Connecting OpenCode to GitHub Copilot
+
+To use GitHub Copilot as the AI provider for OpenCode:
+
+1. Generate a GitHub personal access token with Copilot access at <https://github.com/settings/tokens>.
+2. Store the token securely with Ansible Vault:
+   ```bash
+   ansible-vault encrypt_string 'ghp_yourtoken' --name 'opencode_github_token'
+   ```
+   Paste the encrypted value into your `host_vars` file (e.g. `inventory/host_vars/ugreen-nas/vault.yml`).
+3. Enable GitHub Copilot in your `host_vars` or playbook variables:
+   ```yaml
+   opencode_github_copilot_enabled: true
+   opencode_github_token: !vault |
+     $ANSIBLE_VAULT;1.1;AES256
+     ...
+   ```
+4. Re-run the playbook. OpenCode will authenticate with GitHub Copilot using the provided token.
 
 ### Monitoring (ugreen-nas)
 

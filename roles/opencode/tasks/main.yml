@@ -15,6 +15,23 @@
     group: "root"
     mode: "0755"
 
+- name: Deploy GitHub Copilot provider config for OpenCode
+  ansible.builtin.template:
+    src: "config.json.j2"
+    dest: "{{ opencode_install_dir }}/data/config.json"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+  when: opencode_github_copilot_enabled | default(false)
+  notify: Restart OpenCode
+
+- name: Remove GitHub Copilot provider config when disabled
+  ansible.builtin.file:
+    path: "{{ opencode_install_dir }}/data/config.json"
+    state: absent
+  when: not (opencode_github_copilot_enabled | default(false))
+  notify: Restart OpenCode
+
 - name: Template docker-compose file for OpenCode
   ansible.builtin.template:
     src: "docker-compose.yml.j2"
