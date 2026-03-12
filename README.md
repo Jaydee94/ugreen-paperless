@@ -10,8 +10,8 @@ The setup is split across two hosts:
 
 | Host | Roles deployed | Purpose |
 |------|---------------|---------|
-| `ugreen-nas` | `paperless`, `gotify`, `monitoring` | Ugreen NAS: runs paperless-ngx + Gotify notifications + monitoring stack |
-| `kubepi` | `paperless-ai`, `scanner-pi`, `opencode` | Raspberry Pi: standalone Paperless-AI, scanner automation, and OpenCode |
+| `ugreen-nas` | `paperless`, `gotify`, `monitoring`, `openclaw` | Ugreen NAS: runs paperless-ngx + Gotify notifications + monitoring stack + OpenClaw |
+| `kubepi` | `paperless-ai`, `scanner-pi`, `opencode`, `node-exporter` | Raspberry Pi: standalone Paperless-AI, scanner automation, OpenCode, and node metrics |
 
 ## Contents
 
@@ -20,9 +20,10 @@ The setup is split across two hosts:
 - `roles/paperless-ai/` — Deploys [Paperless-AI](https://github.com/clusterzx/paperless-ai) as a standalone service on a separate host (e.g., `kubepi`).
 - `roles/scanner-pi/` — Configures a Raspberry Pi as a scan station: installs SANE/scanbd, mounts the paperless consume SMB share, and deploys a scan-to-PDF script.
 - `roles/opencode/` — Deploys [OpenCode](https://github.com/opencode-ai/opencode) (an AI coding assistant) as a Docker container.
+- `roles/openclaw/` — Deploys [OpenClaw](https://github.com/openclaw/openclaw) (an AI coding assistant) as a Docker container on `ugreen-nas`, with optional GitHub Copilot integration.
 - `roles/monitoring/` — Deploys a lightweight monitoring stack (Prometheus + Grafana + Node Exporter + cAdvisor) with Docker Compose.
 - `inventory/` — Example inventory layout (hosts, group_vars, host_vars).
-- `ugreen-paperless.yml` — Playbook that deploys `paperless`, `gotify`, and `monitoring` to `ugreen-nas`.
+- `ugreen-paperless.yml` — Playbook that deploys `paperless`, `gotify`, `monitoring`, and `openclaw` to `ugreen-nas`.
 - `paperless-ai.yml` — Playbook that deploys `paperless-ai`, `scanner-pi`, and `opencode` to `kubepi`.
 
 ## Quick start
@@ -110,6 +111,22 @@ Key configurable variables are in `roles/opencode/defaults/main.yml`. Important 
 - `opencode_port` — host port mapped to the OpenCode web UI (default: 8080).
 - `opencode_image` / `opencode_version` — Docker image and tag (default: `ghcr.io/anomalyco/opencode:latest`).
 - `opencode_server_password` — optional password to protect the web interface.
+- `opencode_github_copilot_enabled` — set to `true` to enable GitHub Copilot as the AI provider (default: `false`).
+- `opencode_github_token` — GitHub personal access token with Copilot access. Store this using Ansible Vault (see [Security and secrets](#security-and-secrets)). Required when `opencode_github_copilot_enabled: true`.
+
+## Role: `openclaw` (summary)
+
+Deploys [OpenClaw](https://github.com/openclaw/openclaw), an AI coding assistant, as a Docker container on `ugreen-nas` with optional GitHub Copilot integration.
+
+Key configurable variables are in `roles/openclaw/defaults/main.yml`. Important ones:
+
+- `openclaw_install_dir` — install directory (default: `/opt/openclaw`).
+- `openclaw_port` — host port mapped to the OpenClaw web UI (default: 3000).
+- `openclaw_image` / `openclaw_version` — Docker image and tag (default: `ghcr.io/openclaw/openclaw:latest`).
+- `openclaw_workspace_dir` — host directory mounted into the container as `/workspace` for the agent to read/write (default: `/opt/openclaw/workspace`). Scope this to the directories you want the agent to access.
+- `openclaw_server_password` — optional password to protect the web interface.
+- `openclaw_github_copilot_enabled` — set to `true` to enable GitHub Copilot as the AI provider (default: `false`).
+- `openclaw_github_token` — GitHub personal access token with Copilot access. Store this using Ansible Vault (see [Security and secrets](#security-and-secrets)). Required when `openclaw_github_copilot_enabled: true`.
 
 ## Role: `monitoring` (summary)
 
@@ -232,6 +249,56 @@ Example (default):
     http://192.168.1.101:8080
 
 If `opencode_server_password` is set, you will be prompted for it on first access.
+
+#### Connecting OpenCode to GitHub Copilot
+
+To use GitHub Copilot as the AI provider for OpenCode:
+
+1. Generate a GitHub personal access token with Copilot access at <https://github.com/settings/tokens>.
+2. Store the token securely with Ansible Vault:
+   ```bash
+   ansible-vault encrypt_string 'ghp_yourtoken' --name 'opencode_github_token'
+   ```
+   Paste the encrypted value into your `host_vars` file (e.g. `inventory/host_vars/kubepi/vault.yml`).
+3. Enable GitHub Copilot in your `host_vars` or playbook variables:
+   ```yaml
+   opencode_github_copilot_enabled: true
+   opencode_github_token: !vault |
+     $ANSIBLE_VAULT;1.1;AES256
+     ...
+   ```
+4. Re-run the playbook. OpenCode will authenticate with GitHub Copilot using the provided token.
+
+### OpenClaw (ugreen-nas)
+
+After running the `ugreen-paperless.yml` playbook, OpenClaw is available at:
+
+    http://<NAS-IP>:<openclaw_port>
+
+Example (default):
+
+    http://192.168.1.100:3000
+
+If `openclaw_server_password` is set, you will be prompted for it on first access.
+
+#### Connecting OpenClaw to GitHub Copilot
+
+To use GitHub Copilot as the AI provider for OpenClaw:
+
+1. Generate a GitHub personal access token with Copilot access at <https://github.com/settings/tokens>.
+2. Store the token securely with Ansible Vault:
+   ```bash
+   ansible-vault encrypt_string 'ghp_yourtoken' --name 'openclaw_github_token'
+   ```
+   Paste the encrypted value into your `host_vars` file (e.g. `inventory/host_vars/ugreen-nas/vault.yml`).
+3. Enable GitHub Copilot in your `host_vars` or playbook variables:
+   ```yaml
+   openclaw_github_copilot_enabled: true
+   openclaw_github_token: !vault |
+     $ANSIBLE_VAULT;1.1;AES256
+     ...
+   ```
+4. Re-run the playbook. OpenClaw will start with the GitHub Copilot provider configured, using `github-copilot/gpt-4o` as the default model.
 
 ### Monitoring (ugreen-nas)
 

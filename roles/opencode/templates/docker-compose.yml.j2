@@ -14,5 +14,6 @@ services:
       web --hostname {{ opencode_host }} --port {{ opencode_port }}
     environment:
       - OPENCODE_SERVER_PASSWORD={{ opencode_server_password | default('') }}
-      # Optional: Add any necessary API keys for LLMs here if passing via env vars
-      # - OPENAI_API_KEY={{ openai_api_key | default('') }}
+{% if opencode_github_copilot_enabled | default(false) %}
+      - GITHUB_TOKEN={{ opencode_github_token }}
+{% endif %}

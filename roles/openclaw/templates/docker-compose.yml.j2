@@ -1,0 +1,16 @@
+---
+services:
+  openclaw:
+    image: "{{ openclaw_image }}:{{ openclaw_version }}"
+    container_name: openclaw
+    restart: unless-stopped
+    ports:
+      - "{{ openclaw_port }}:{{ openclaw_port }}"
+    volumes:
+      - "{{ openclaw_install_dir }}/data:/root/.openclaw"
+      - "{{ openclaw_workspace_dir }}:/workspace:rw"
+    environment:
+      - OPENCLAW_SERVER_PASSWORD={{ openclaw_server_password | default('') }}
+{% if openclaw_github_copilot_enabled | default(false) %}
+      - GITHUB_TOKEN={{ openclaw_github_token }}
+{% endif %}

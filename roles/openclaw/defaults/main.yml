@@ -1,0 +1,25 @@
+---
+# Default variables for openclaw role
+
+openclaw_install_dir: "/opt/openclaw"
+openclaw_image: "ghcr.io/openclaw/openclaw"
+openclaw_version: "latest"
+
+# Web Interface Settings
+openclaw_port: 3000
+openclaw_host: "0.0.0.0"
+
+# Directory on the host that OpenClaw can read/write as its workspace.
+# Scope this to the directories you actually want the agent to access.
+openclaw_workspace_dir: "/opt/openclaw/workspace"
+
+# Optional: Add server password for security
+# openclaw_server_password: "your_secure_password"
+
+# GitHub Copilot integration
+# Set to true to enable GitHub Copilot as the AI provider.
+# Requires a GitHub personal access token with Copilot access stored in openclaw_github_token
+# (recommended: use Ansible Vault to store the token).
+# Example: ansible-vault encrypt_string 'ghp_yourtoken' --name 'openclaw_github_token'
+openclaw_github_copilot_enabled: false
+# openclaw_github_token: "{{ vault_openclaw_github_token }}"
