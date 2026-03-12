@@ -39,4 +39,6 @@ monitoring_probe_targets:
   - name: paperless-ai
     url: "http://{{ kubepi_probe_host }}:3000/health"
   - name: opencode
-    url: "http://{{ hostvars['ugreen-nas'].ansible_host }}:8080"
+    url: "http://{{ kubepi_probe_host }}:8080"
+  - name: openclaw
+    url: "http://{{ hostvars['ugreen-nas'].ansible_host }}:3000"
